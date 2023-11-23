@@ -13,13 +13,14 @@ import { middleEllipsis } from "@/lib/utils";
 import { useUserWalletStore } from "@/stores/walletStore";
 import Link from "next/link";
 import Create from "@/components/events/Create";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const UserConnection = () => {
   const user = useUserWalletStore((state) => state.userWallet);
   const setUser = useUserWalletStore((state) => state.setUserWallet);
   const resetUser = useUserWalletStore((state) => state.resetUserWallet);
   const [open, setOpen] = useState<boolean>(false);
-  const [error, setError] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<string | undefined>();
   const [showErroDialog, setShowErrorDialog] = useState<boolean>(false);
 
   const connectToMetaMask = async () => {
@@ -66,17 +67,19 @@ const UserConnection = () => {
         />
         Connect
       </Button>
-      {/* </DialogTrigger>
-       <DialogContent className="sm:max-w-[425px] px-2 sm:px-6">
-         <div>
-           <div className="py-4 w-72 m-2 rounded-md bg-gradient-to-r from-pink-900 via-fuchsia-900 to-red-900">
-             <div className="text-sm text-center font-light bg-gradient-to-r from-red-300 to-pink-600 bg-clip-text text-transparent mx-2">
-               {error}
-             </div>
-           </div>
-         </div>
-       </DialogContent>
-     </Dialog> */}
+      {/* {error && (
+        <Dialog open={showErroDialog} onOpenChange={setShowErrorDialog}>
+          <DialogContent className="sm:max-w-[425px] px-2 sm:px-6">
+            <div>
+              <div className="py-4 w-72 m-2 rounded-md bg-gradient-to-r from-pink-900 via-fuchsia-900 to-red-900">
+                <div className="text-sm text-center font-light bg-gradient-to-r from-red-300 to-pink-600 bg-clip-text text-transparent mx-2">
+                  {error}
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )} */}
     </>
   ) : (
     <Popover open={open} onOpenChange={setOpen}>
