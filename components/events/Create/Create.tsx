@@ -1,4 +1,18 @@
 "use client";
+import { useState } from "react";
+import { FileUploader } from "react-drag-drop-files";
+import { useForm } from "react-hook-form";
+import { ImageDown, X } from "lucide-react";
+import { File, TernoaIPFS } from "ternoa-js";
+import { FormSchemaType, formSchema } from "./zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,23 +22,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
-import { FileUploader } from "react-drag-drop-files";
-import { ImageDown, X } from "lucide-react";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
-import { FormSchemaType, formSchema } from "./zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 const Create = () => {
   const [showCreateEventDialog, setShowCreateEventDialog] =
@@ -35,11 +36,17 @@ const Create = () => {
   const [ticketPreview, setTicketPreview] = useState<File | undefined>(
     undefined
   );
+  const [eventIPFS, setEventIPFS] = useState<string | undefined>(undefined);
   const [eventData, setEventData] = useState<any>(undefined);
 
   const handleTicketPreviewChange = async (file: File) => {
     setError(undefined);
     setTicketPreview(file);
+  };
+
+  const cleanStates = () => {
+    setIsEventUploading(false);
+    setTicketPreview(undefined);
   };
 
   const form = useForm<FormSchemaType>({
@@ -53,7 +60,42 @@ const Create = () => {
 
   const handleEventForm = async (values: FormSchemaType) => {
     console.log(values);
-    setError("nické")
+    setError(undefined);
+    setIsEventUploading(true);
+    const formatedMaxTickets = values.maximumTickets
+      ? Number(values.maximumTickets)
+      : 0;
+    try {
+      const IPFS_URL = "https://ipfs-dev.trnnfr.com";
+      const IPFS_API_KEY = "98791fae-d947-450b-a457-12ecf5d9b858";
+      const ipfsClient = new TernoaIPFS(new URL(IPFS_URL), IPFS_API_KEY);
+      const nftMetadata = {
+        title: values.eventTitle ? values.eventTitle : `New event created`,
+        // : `New event created by ${userWallet.address}`,
+        description: values.eventDescription
+          ? values.eventDescription
+          : `New event comming soon.`,
+        maximumTickets: formatedMaxTickets,
+        sourceChainWallet: "sourceChainWallet",
+        sourceChainType: "sourceChainType",
+        sourceChainId: "sourceChainId",
+        signature: "signature",
+      };
+      const { Hash } = await ipfsClient.storeNFT(ticketPreview, nftMetadata);
+      setEventIPFS(Hash)
+      setEventData(Hash);
+      setIsEventUploading(false);
+      return;
+    } catch (error) {
+      const errorDescription =
+        error instanceof Error ? error.message : JSON.stringify(error);
+      setError(errorDescription);
+      setIsEventUploading(false);
+      return;
+    } finally {
+      cleanStates();
+      form.reset();
+    }
     {
       /* 
         sourceChainWallet
@@ -229,13 +271,13 @@ const Create = () => {
                       Uploading event.
                     </DialogTitle>
                   </DialogHeader>
-                  <DialogDescription className="text-white text-center text-sm">
+                  <DialogDescription className="text-white text-center text-sm pb-10">
                     Your event is being uploaded...
                   </DialogDescription>
                 </DialogContent>
               )}
-              {eventData && (
-                <div>C est ok</div>
+              {eventIPFS && (
+                <div className="text-xs"> Sign {eventIPFS}</div>
                 // <DialogContent className="sm:max-w-[425px] px-2 sm:px-6 rounded-md bg-gradient-to-r from-teal-200 to-teal-500 text-white py-4 w-2/3 mt-2 text-center mx-auto text-white">
                 //   <DialogHeader>
                 //     <DialogTitle className="p-4 bg-clip-text bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-amber-900 to-yellow-300 text-transparent text-center">
