@@ -9,10 +9,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn, middleEllipsis } from "@/lib/utils";
+import { middleEllipsis } from "@/lib/utils";
 import { useUserWalletStore } from "@/stores/walletStore";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import Link from "next/link";
+import Create from "@/components/events/Create";
 
 const UserConnection = () => {
   const user = useUserWalletStore((state) => state.userWallet);
@@ -54,7 +54,7 @@ const UserConnection = () => {
   return !user.isConnected ? (
     <>
       {/* <Dialog open={showErroDialog} onOpenChange={setShowErrorDialog}>
-    f <DialogTrigger asChild> */}
+     <DialogTrigger asChild> */}
       <Button variant={"outline"} onClick={() => connectToMetaMask()}>
         <Image
           src="/metamask.svg"
@@ -97,11 +97,8 @@ const UserConnection = () => {
       </PopoverTrigger>
       <PopoverContent className="p-0 w-max" align="end">
         <div className="flex flex-col px-5 py-3 space-y-1">
-          <div className={cn(buttonVariants({ variant: "outline" }), "cursor-pointer")}>Create an Event</div>
-          <Link
-            href="/tickets"
-            className={buttonVariants({ variant: "link" })}
-          >
+          <Create />
+          <Link href="/tickets" className={buttonVariants({ variant: "link" })}>
             My tickets
           </Link>
         </div>
