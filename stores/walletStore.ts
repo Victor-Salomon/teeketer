@@ -3,6 +3,10 @@ import { create } from "zustand";
 export type UserWalletType = {
   address: string;
   isConnected: boolean;
+  sourceChainWallet: string, 
+  sourceChainId: string,
+  sourceChainType: string,
+  isKeeperRegistered?: boolean
 };
 
 export type UserWalletStoreType = {
@@ -14,6 +18,9 @@ export type UserWalletStoreType = {
 const initialWalletState: UserWalletType = {
   address: "",
   isConnected: false,
+  sourceChainWallet: "", 
+  sourceChainId: "",
+  sourceChainType: "",
 };
 
 export const useUserWalletStore = create<UserWalletStoreType>()((set) => ({

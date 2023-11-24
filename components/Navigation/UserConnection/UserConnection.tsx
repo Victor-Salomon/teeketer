@@ -14,28 +14,91 @@ import { useUserWalletStore } from "@/stores/walletStore";
 import Link from "next/link";
 import Create from "@/components/events/Create";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  generateSignedPayload,
+  getWalletRegistration,
+  registerWallet,
+} from "@/lib/keeper";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const UserConnection = () => {
   const user = useUserWalletStore((state) => state.userWallet);
   const setUser = useUserWalletStore((state) => state.setUserWallet);
   const resetUser = useUserWalletStore((state) => state.resetUserWallet);
+  const [loading, setLoading] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
   const [error, setError] = useState<string | undefined>();
   const [showErroDialog, setShowErrorDialog] = useState<boolean>(false);
+  const [isWalletRegistered, setIsWalletRegistered] = useState<boolean>(false);
+
+  const checkRegistration = async () => {
+    const checkRegistration = await getWalletRegistration(user.address);
+    checkRegistration && !checkRegistration.walletDetails
+      ? setIsWalletRegistered(false)
+      : setIsWalletRegistered(true);
+  };
+
+  const registerNewWallet = async () => {
+    try {
+      const checkRegistration = await getWalletRegistration(user.address);
+
+      if (checkRegistration && !checkRegistration.walletDetails) {
+        setIsWalletRegistered(true);
+        const ethereum = (window as any).ethereum;
+        const provider = new ethers.BrowserProvider(ethereum);
+        const signer = await provider.getSigner();
+        const signPayload = await generateSignedPayload(signer);
+        const data = await registerWallet(signPayload);
+        console.log("NEW ACCOUNT REGISTRATION: ", data);
+      }
+    } catch (error: Error | any) {
+      const errDesc = `Error connecting to MetaMask: ${
+        error?.message ?? error
+      }`;
+      console.log(errDesc);
+    }
+  };
 
   const connectToMetaMask = async () => {
+    setLoading(true);
     const ethereum = (window as any).ethereum;
     if (typeof ethereum !== "undefined") {
       try {
         const provider = new ethers.BrowserProvider(ethereum);
         const signer = await provider.getSigner();
-        setUser({ address: signer.address, isConnected: true });
+
+        const checkRegistration = await getWalletRegistration(signer.address);
+
+        if (checkRegistration && !checkRegistration.walletDetails) {
+          const signPayload = await generateSignedPayload(signer);
+          const data = await registerWallet(signPayload);
+          if (data && data.registrationData?.signingNFTId) {
+          }
+          console.log("ACCOUNT REGISTRATION: ", data);
+        }
+
+        setUser({
+          address: signer.address,
+          isConnected: true,
+          sourceChainWallet: signer.address,
+          sourceChainId: "0",
+          sourceChainType: "ERC",
+          isKeeperRegistered: true,
+        });
 
         ethereum.on("accountsChanged", async function () {
           const provider = new ethers.BrowserProvider(ethereum);
           const signer = await provider.getSigner();
-          setUser({ address: signer.address, isConnected: true });
+
+          setUser({
+            address: signer.address,
+            isConnected: true,
+            sourceChainWallet: signer.address,
+            sourceChainId: "0",
+            sourceChainType: "ERC",
+          });
         });
+        setLoading(false);
       } catch (error: Error | any) {
         const errDesc = `Error connecting to MetaMask: ${
           error?.message ?? error
@@ -43,12 +106,14 @@ const UserConnection = () => {
         alert(errDesc);
         setError(errDesc);
         setShowErrorDialog(true);
+        setLoading(false);
       }
     } else {
       const errDesc = "MetaMask not installed";
       alert(errDesc);
       setError(errDesc);
       setShowErrorDialog(true);
+      setLoading(false);
     }
   };
 
@@ -65,7 +130,13 @@ const UserConnection = () => {
           height={30}
           priority
         />
-        Connect
+        {!loading ? (
+          "Connect"
+        ) : (
+          <span className="from-purple-500 via-pink-500 to-blue-500 bg-gradient-to-r bg-clip-text text-transparent font-light">
+            Registering...
+          </span>
+        )}
       </Button>
       {/* {error && (
         <Dialog open={showErroDialog} onOpenChange={setShowErrorDialog}>
@@ -84,7 +155,12 @@ const UserConnection = () => {
   ) : (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" aria-expanded={open}>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          onClick={() => checkRegistration()}
+        >
           <Image
             src="/metamask.svg"
             alt="MetaMask Logo"
@@ -94,7 +170,7 @@ const UserConnection = () => {
             priority
           />
           <span className="from-purple-500 via-pink-500 to-blue-500 bg-gradient-to-r bg-clip-text text-transparent font-light">
-            {middleEllipsis(user.address, 15)}
+            {!loading ? middleEllipsis(user.address, 15) : "Registering..."}
           </span>
         </Button>
       </PopoverTrigger>
@@ -104,6 +180,15 @@ const UserConnection = () => {
           <Link href="/tickets" className={buttonVariants({ variant: "link" })}>
             My tickets
           </Link>
+          {!isWalletRegistered && (
+            <Button
+              variant="default"
+              className="text-xs font-light mx-auto"
+              onClick={() => registerNewWallet()}
+            >
+              Register now
+            </Button>
+          )}
         </div>
         <div className="border-t text-end">
           <Button

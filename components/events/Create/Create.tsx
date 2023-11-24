@@ -75,11 +75,11 @@ const Create = () => {
         description: values.eventDescription
           ? values.eventDescription
           : `New event comming soon.`,
-        maximumTickets: formatedMaxTickets,
-        sourceChainWallet: "sourceChainWallet",
-        sourceChainType: "sourceChainType",
-        sourceChainId: "sourceChainId",
-        signature: "signature",
+        // maximumTickets: formatedMaxTickets,
+        // sourceChainWallet: "sourceChainWallet",
+        // sourceChainType: "sourceChainType",
+        // sourceChainId: "sourceChainId",
+        // signature: "signature",
       };
       const { Hash } = await ipfsClient.storeNFT(ticketPreview, nftMetadata);
       setEventIPFS(Hash)
