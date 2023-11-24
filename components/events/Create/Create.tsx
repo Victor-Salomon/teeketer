@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FileUploader } from "react-drag-drop-files";
 import { useForm } from "react-hook-form";
 import { ImageDown, X } from "lucide-react";
@@ -26,6 +26,8 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { generateSignedPayload, registerEvent } from "@/lib/keeper";
+import { ethers } from "ethers";
 
 const Create = () => {
   const [showCreateEventDialog, setShowCreateEventDialog] =
@@ -36,7 +38,6 @@ const Create = () => {
   const [ticketPreview, setTicketPreview] = useState<File | undefined>(
     undefined
   );
-  const [eventIPFS, setEventIPFS] = useState<string | undefined>(undefined);
   const [eventData, setEventData] = useState<any>(undefined);
 
   const handleTicketPreviewChange = async (file: File) => {
@@ -55,13 +56,24 @@ const Create = () => {
       eventTitle: "",
       eventDescription: "",
       maximumTickets: "",
+      collection: "",
     },
   });
 
   const handleEventForm = async (values: FormSchemaType) => {
-    console.log(values);
     setError(undefined);
     setIsEventUploading(true);
+    if (
+      ticketPreview === undefined ||
+      values.eventTitle.length === 0 ||
+      values.eventDescription.length === 0 ||
+      values.maximumTickets.length === 0 ||
+      values.collection.length === 0
+    ) {
+      setError("Values missing!");
+      setIsEventUploading(false);
+      return;
+    }
     const formatedMaxTickets = values.maximumTickets
       ? Number(values.maximumTickets)
       : 0;
@@ -71,24 +83,32 @@ const Create = () => {
       const ipfsClient = new TernoaIPFS(new URL(IPFS_URL), IPFS_API_KEY);
       const nftMetadata = {
         title: values.eventTitle ? values.eventTitle : `New event created`,
-        // : `New event created by ${userWallet.address}`,
         description: values.eventDescription
           ? values.eventDescription
           : `New event comming soon.`,
-        // maximumTickets: formatedMaxTickets,
-        // sourceChainWallet: "sourceChainWallet",
-        // sourceChainType: "sourceChainType",
-        // sourceChainId: "sourceChainId",
-        // signature: "signature",
       };
       const { Hash } = await ipfsClient.storeNFT(ticketPreview, nftMetadata);
-      setEventIPFS(Hash)
-      setEventData(Hash);
+      const payload = {
+        block: 1234,
+        title: values.eventTitle ? values.eventTitle : `New event created`,
+        description: values.eventDescription
+          ? values.eventDescription
+          : `New event comming soon.`,
+        basicNFTIPFS: Hash,
+        whitelistedCollections: [values.collection],
+        maximumTickets: formatedMaxTickets,
+      };
+
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
+      const signer = await provider.getSigner();
+      const signPayload = await generateSignedPayload(signer, payload);
+      const eventData = await registerEvent(signPayload);
+      console.log(eventData);
+      setEventData(eventData);
       setIsEventUploading(false);
-      return;
+      return eventData;
     } catch (error) {
-      const errorDescription =
-        error instanceof Error ? error.message : JSON.stringify(error);
+      const errorDescription ="Event Creation Error: Something went wrong during the event creation.";
       setError(errorDescription);
       setIsEventUploading(false);
       return;
@@ -96,20 +116,11 @@ const Create = () => {
       cleanStates();
       form.reset();
     }
-    {
-      /* 
-        sourceChainWallet
-        sourceChainType
-        sourceChainId
-        ✅imageFile
-        signature
-        data:
-        ✅title
-        ✅description
-        ✅maximumTickets 
-        */
-    }
   };
+
+  useEffect(() => {
+    setError(undefined);
+  }, [showCreateEventDialog]);
 
   return (
     <Dialog
@@ -128,29 +139,29 @@ const Create = () => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] px-2 sm:px-6">
         <DialogHeader>
-          {error ? (
+          {/* {error ? (
             <>
               <DialogTitle>Event Creation Error</DialogTitle>
               <DialogDescription>
                 Something went wrong during the event creation.
               </DialogDescription>
             </>
-          ) : (
+          ) : ( */}
             <>
               <DialogTitle>Create an event</DialogTitle>
               <DialogDescription>
                 Fill the following form to register your new event.
               </DialogDescription>
             </>
-          )}
+          {/* )} */}
         </DialogHeader>
-        {error ? (
+        {/* {error ? (
           <div className="flex flex-col justify-center items-center mt-4 rounded-md bg-gradient-to-r from-pink-900 via-fuchsia-900 to-red-900 py-4">
             <div className="m-4 bg-gradient-to-r from-red-300 to-pink-600 bg-clip-text text-transparent">
               {error}
             </div>
-          </div>
-        ) : (
+          </div> 
+        ) : (*/}
           <>
             <div className="w-3/6 mx-auto bg-gradient-to-r from-indigo-400 to-cyan-400 p-0.5 rounded-lg">
               <FileUploader
@@ -185,7 +196,7 @@ const Create = () => {
               </p>
             )}
           </>
-        )}
+        {/* )} */}
 
         <Form {...form}>
           <form
@@ -243,6 +254,23 @@ const Create = () => {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="collection"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Whitelist a collection</FormLabel>
+                    <FormControl className="font-light">
+                      <Input
+                        placeholder="Set a collection to whitelist NFT owners."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </>
             <Dialog>
               <DialogTrigger asChild>
@@ -276,52 +304,23 @@ const Create = () => {
                   </DialogDescription>
                 </DialogContent>
               )}
-              {eventIPFS && (
-                <div className="text-xs"> Sign {eventIPFS}</div>
-                // <DialogContent className="sm:max-w-[425px] px-2 sm:px-6 rounded-md bg-gradient-to-r from-teal-200 to-teal-500 text-white py-4 w-2/3 mt-2 text-center mx-auto text-white">
-                //   <DialogHeader>
-                //     <DialogTitle className="p-4 bg-clip-text bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-amber-900 to-yellow-300 text-transparent text-center">
-                //       NFT SUCCESSFULLY CREATED 🌶️
-                //     </DialogTitle>
-                //     <TernoaIcon className="mx-auto" />
-                //   </DialogHeader>
-                //   <DialogDescription className="pb-6 text-white text-base text-sm space-y-4 mx-3">
-                //     <span className="">
-                //       <span className="font-bold me-0.5">Congratulation:</span>
-                //       {middleEllipsis(nftData.owner, 15)} just created{" "}
-                //       <span className="font-bold bg-clip-text bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-amber-900 to-yellow-300 text-transparent mx-1">
-                //         NFT id {nftData.nftId}
-                //       </span>
-                //       on the Ternoa Blockchain.{" "}
-                //     </span>
-
-                //     <span className="m-0.5">
-                //       Find the IPFS hash{" "}
-                //       <a
-                //         className="font-bold cursor-pointer"
-                //         href={`https://ipfs-mainnet.trnnfr.com/ipfs/${nftData.offchainData}`}
-                //         target="blank"
-                //       >
-                //         here.
-                //       </a>
-                //     </span>
-
-                //     {blockData && (
-                //       <span className="m-0.5">
-                //         See your transaction
-                //         <a
-                //           className="font-bold cursor-pointer ps-1"
-                //           href={getExplorerLink(
-                //             Number(blockData.block?.header.number)
-                //           )}
-                //           target="blank"
-                //         >
-                //           here.
-                //         </a>
-                //       </span>
-                //     )}
-                //   </DialogDescription>
-                // </DialogContent>
+              {eventData && (
+                <DialogContent className="sm:max-w-[425px] px-2 sm:px-6 rounded-md bg-gradient-to-r from-teal-200 to-teal-500 text-white py-4 w-2/3 mt-2 text-center mx-auto text-white">
+                  <DialogHeader>
+                    <DialogTitle className="p-4 bg-clip-text bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-amber-900 to-yellow-300 text-transparent text-center">
+                      EVENT SUCCESSFULLY CREATED 🎉
+                    </DialogTitle>
+                  </DialogHeader>
+                  <DialogDescription className="pb-6 text-white text-sm space-y-4 mx-3">
+                    <span className="">
+                      <span className="font-bold me-0.5">Congratulation,</span>
+                      <span className="font-bold bg-clip-text bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-amber-900 to-yellow-300 text-transparent mx-1">
+                        {eventData.eventRegistration.title} event
+                      </span>
+                      created!
+                    </span>
+                  </DialogDescription>
+                </DialogContent>
               )}
             </Dialog>
           </form>

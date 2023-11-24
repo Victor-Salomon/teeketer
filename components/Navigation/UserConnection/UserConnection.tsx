@@ -47,7 +47,7 @@ const UserConnection = () => {
         const ethereum = (window as any).ethereum;
         const provider = new ethers.BrowserProvider(ethereum);
         const signer = await provider.getSigner();
-        const signPayload = await generateSignedPayload(signer);
+        const signPayload = await generateSignedPayload(signer, { block: 1234 });
         const data = await registerWallet(signPayload);
         console.log("NEW ACCOUNT REGISTRATION: ", data);
       }
@@ -70,11 +70,9 @@ const UserConnection = () => {
         const checkRegistration = await getWalletRegistration(signer.address);
 
         if (checkRegistration && !checkRegistration.walletDetails) {
-          const signPayload = await generateSignedPayload(signer);
-          const data = await registerWallet(signPayload);
-          if (data && data.registrationData?.signingNFTId) {
-          }
-          console.log("ACCOUNT REGISTRATION: ", data);
+          const signPayload = await generateSignedPayload(signer, { block: 1234 });
+          const register = await registerWallet(signPayload);
+          console.log("ACCOUNT REGISTRATION: ", register);
         }
 
         setUser({
