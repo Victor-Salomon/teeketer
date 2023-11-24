@@ -1,19 +1,78 @@
+"use client";
 import Image from "next/image";
-import { unstable_noStore as noStore } from "next/cache";
 import { CalendarHeart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { buyEventTicket, generateSignedPayload, getEvents } from "@/lib/keeper";
+import { EventType, EventsType } from "@/lib/types";
+import { useUserWalletStore } from "@/stores/walletStore";
+import { useEffect, useState } from "react";
+import { EventListSkeleton } from "@/components/Skeletons";
+import { ethers } from "ethers";
 
-export const EventList = async () => {
-  const fetchData = async () => {
-    noStore();
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return true;
+export const EventList = () => {
+  const user = useUserWalletStore((state) => state.userWallet);
+  const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(false);
+  const [isPurchaseLoading, setIsPurchaseLoading] = useState<boolean>(false);
+  // const [error, setError] = useState<string | undefined>(undefined);
+  const [events, setEvents] = useState<EventsType>();
+
+  const handleBuy = async (eventId: string) => {
+    setIsPurchaseLoading(true);
+    try {
+      const ethereum = (window as any).ethereum;
+      const provider = new ethers.BrowserProvider(ethereum);
+      const signer = await provider.getSigner();
+      const signPayload = await generateSignedPayload(signer, {
+        block: 1234,
+        eventId,
+      });
+      const buyTicket = await buyEventTicket(signPayload);
+      console.log(buyTicket);
+      setIsPurchaseLoading(false);
+    } catch (error: Error | any) {
+      const errDesc = `Error buyingTicket: ${error?.message ?? error}`;
+      console.log(errDesc);
+      setIsPurchaseLoading(false);
+    }
   };
-  const isData = await fetchData();
 
-  return (
+  useEffect(() => {
+    let shouldUpdate = true;
+    setIsLoadingEvents(true);
+
+    const loadEvents = async () => {
+      try {
+        const events: EventsType = user.isConnected
+          ? await getEvents(user.address)
+          : await getEvents();
+        console.log(events);
+        if (shouldUpdate) setEvents(events);
+        console.log(events);
+        setIsLoadingEvents(false);
+      } catch (error) {
+        console.error(error);
+        setIsLoadingEvents(false);
+        if (error instanceof Error) {
+          console.error(error.message);
+        } else {
+          console.error(error as string);
+        }
+      }
+    };
+
+    loadEvents();
+
+    return () => {
+      shouldUpdate = false;
+      setIsLoadingEvents(false);
+    };
+  }, [user]);
+
+  return isLoadingEvents ? (
+    <EventListSkeleton />
+  ) : (
     <div className="overflow-y-auto h-[600px] border rounded-lg p-4 flex">
-      {!isData ? (
+      {!events || events?.allEvents.length === 0 ? (
         <div className="flex flex-col items-center self-center space-y-4 text-muted-foreground mx-auto">
           <CalendarHeart />
           <p className="flex flex-col text-center">
@@ -22,14 +81,14 @@ export const EventList = async () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-4 gap-4 self-start">
-          {Array.from({ length: 3 }, (_, i) => i + 1).map((id) => (
+        <div className="grid grid-cols-4 gap-4 self-start w-full">
+          {events?.allEvents.map((e: EventType) => (
             <div
-              key={id}
-              className="border w-full my-1 rounded-md transition-all hover:border-slate-300"
+              key={e.eventId}
+              className="border my-1 rounded-md transition-all hover:border-slate-300 w-full"
             >
               <div className="flex flex-col items-center px-2 py-4">
-                <div className="w-3/6 mx-auto">
+                <div className="mx-auto">
                   <Image
                     src="/event.jpg"
                     alt="Random event"
@@ -38,21 +97,24 @@ export const EventList = async () => {
                     height={150}
                   />
                 </div>
-                <div className="flex flex-col pt-2 space-y-2">
-                  <h2 className="text-lg text-center font-bold">Event 1</h2>
-                  <p className="text-sm text-muted-foreground overflow-y-auto max-h-[150px] border rounded-md p-2">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                    ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                    Duis aute irure dolor in reprehenderit in voluptate velit
-                    esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
-                    occaecat cupidatat non proident, sunt in culpa qui officia
-                    deserunt mollit anim id est laborum.
+                <div className="flex flex-col pt-2 space-y-2 w-full">
+                  <h2 className="text-lg text-center font-bold">{e.title}</h2>
+                  <h2 className="text-sm text-muted-foreground font-bold">
+                    Description:
+                  </h2>
+                  <p className="text-sm text-muted-foreground overflow-y-auto max-h-[150px] min-h-[60px] border rounded-md p-2">
+                    {e.description}
                   </p>
-                  <Button className="mx-auto" variant={"outline"}>
-                    Buy ticket
-                  </Button>
+                  {e.buyAble && (
+                    <Button
+                      className="mx-auto"
+                      variant={"outline"}
+                      onClick={() => handleBuy(e.eventId)}
+                      disabled={isPurchaseLoading}
+                    >
+                      {isPurchaseLoading ? "Buying ticket...": "Buy ticket"}
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

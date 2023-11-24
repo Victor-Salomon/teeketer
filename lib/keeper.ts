@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { signedPayloadType } from "./types";
+import { EventsType, signedPayloadType } from "./types";
 
 export const getWalletRegistration = async (userAddress: string) => {
   const apiUrl =
@@ -66,6 +66,44 @@ export const registerWallet = async (signedPayload: signedPayloadType) => {
 export const registerEvent = async (signedPayload: signedPayloadType) => {
   const apiUrl =
     "https://alphanet-admin-c1.ternoa.dev:3001/api/keeper/registerEvent";
+
+  return fetch(apiUrl, {
+    cache: "no-store",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(signedPayload),
+  })
+    .then((response) => response.json())
+    .then((data) => data)
+    .catch((error) => {
+      console.error("Error during fetch:", error);
+    });
+};
+
+export const getEvents = async (address?: string): Promise<EventsType> => {
+  const apiUrl =
+    "https://alphanet-admin-c1.ternoa.dev:3001/api/keeper/getAllEvents";
+
+  return fetch(apiUrl, {
+    cache: "no-store",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ sourceChainWallet: address }),
+  })
+    .then((response) => response.json())
+    .then((data) => data)
+    .catch((error) => {
+      console.error("Error during fetch:", error);
+    });
+};
+
+export const buyEventTicket = async (signedPayload: signedPayloadType) => {
+  const apiUrl =
+    "https://alphanet-admin-c1.ternoa.dev:3001/api/keeper/buyTicket";
 
   return fetch(apiUrl, {
     cache: "no-store",
