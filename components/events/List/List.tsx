@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { CalendarHeart } from "lucide-react";
+import { CalendarHeart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buyEventTicket, generateSignedPayload, getEvents } from "@/lib/keeper";
 import { EventType, EventsType } from "@/lib/types";
@@ -45,9 +45,7 @@ export const EventList = () => {
         const events: EventsType = user.isConnected
           ? await getEvents(user.address)
           : await getEvents();
-        console.log(events);
         if (shouldUpdate) setEvents(events);
-        console.log(events);
         setIsLoadingEvents(false);
       } catch (error) {
         console.error(error);
@@ -67,6 +65,7 @@ export const EventList = () => {
       setIsLoadingEvents(false);
     };
   }, [user]);
+  console.log(events)
 
   return isLoadingEvents ? (
     <EventListSkeleton />
@@ -112,7 +111,14 @@ export const EventList = () => {
                       onClick={() => handleBuy(e.eventId)}
                       disabled={isPurchaseLoading}
                     >
-                      {isPurchaseLoading ? "Buying ticket...": "Buy ticket"}
+                      {isPurchaseLoading ? (
+                        <div className="flex items-center">
+                          <Loader2 className="h-4 w-4 animate-spin me-1" />
+                          <span className="animate-pulse">Purchase ongoing...</span>
+                        </div>
+                      ) : (
+                        "Buy ticket"
+                      )}
                     </Button>
                   )}
                 </div>
