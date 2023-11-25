@@ -8,9 +8,11 @@ import { useUserWalletStore } from "@/stores/walletStore";
 import { useEffect, useState } from "react";
 import { EventListSkeleton } from "@/components/Skeletons";
 import { ethers } from "ethers";
+import { loadNftMetadata } from "@/lib/ternoa";
 
 export const EventList = () => {
   const user = useUserWalletStore((state) => state.userWallet);
+  const IPFS_URL = "https://ipfs-dev.trnnfr.com";
   const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(false);
   const [isPurchaseLoading, setIsPurchaseLoading] = useState<boolean>(false);
   // const [error, setError] = useState<string | undefined>(undefined);
@@ -45,7 +47,17 @@ export const EventList = () => {
         const events: EventsType = user.isConnected
           ? await getEvents(user.address)
           : await getEvents();
-        if (shouldUpdate) setEvents(events);
+        if (events) {
+          events.allEvents = await Promise.all(
+            events?.allEvents.map(async (e) => {
+              const ipfsData: any = await loadNftMetadata(e.basicNFTIPFS);
+              e.fileUrl = `${IPFS_URL}/ipfs/${ipfsData.image}`;
+              return e;
+            })
+          );
+          if (shouldUpdate) setEvents(events);
+        }
+
         setIsLoadingEvents(false);
       } catch (error) {
         console.error(error);
@@ -65,7 +77,7 @@ export const EventList = () => {
       setIsLoadingEvents(false);
     };
   }, [user]);
-  console.log(events)
+  console.log(events);
 
   return isLoadingEvents ? (
     <EventListSkeleton />
@@ -89,7 +101,7 @@ export const EventList = () => {
               <div className="flex flex-col items-center px-2 py-4">
                 <div className="mx-auto">
                   <Image
-                    src="/event.jpg"
+                    src={e.fileUrl}
                     alt="Random event"
                     className="rounded-md mx-auto"
                     width={120}
@@ -114,7 +126,9 @@ export const EventList = () => {
                       {isPurchaseLoading ? (
                         <div className="flex items-center">
                           <Loader2 className="h-4 w-4 animate-spin me-1" />
-                          <span className="animate-pulse">Purchase ongoing...</span>
+                          <span className="animate-pulse">
+                            Purchase ongoing...
+                          </span>
                         </div>
                       ) : (
                         "Buy ticket"

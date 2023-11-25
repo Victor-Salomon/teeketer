@@ -17,6 +17,7 @@ export type EventType = {
   whitelistedCollections: string[];
   maximumTickets: number;
   buyAble: boolean;
+  fileUrl:string,
 };
 
 export type EventsType = {
