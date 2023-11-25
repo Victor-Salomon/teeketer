@@ -119,3 +119,41 @@ export const buyEventTicket = async (signedPayload: signedPayloadType) => {
       console.error("Error during fetch:", error);
     });
 };
+
+export const getUserTickets = async (address?: string): Promise<any> => {
+  const apiUrl =
+    "https://alphanet-admin-c1.ternoa.dev:3001/api/keeper/getUserTickets";
+
+  return fetch(apiUrl, {
+    cache: "no-store",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ sourceChainWallet: address }),
+  })
+    .then((response) => response.json())
+    .then((data) => data)
+    .catch((error) => {
+      console.error("Error during fetch:", error);
+    });
+};
+
+export const retrieveTicketKey = async (signedPayload: signedPayloadType) => {
+  const apiUrl =
+    "https://alphanet-admin-c1.ternoa.dev:3001/api/keeper/retriveTicketKey";
+
+  return fetch(apiUrl, {
+    cache: "no-store",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(signedPayload),
+  })
+    .then((response) => response.json())
+    .then((data) => data)
+    .catch((error) => {
+      console.error("Error during fetch:", error);
+    });
+};
