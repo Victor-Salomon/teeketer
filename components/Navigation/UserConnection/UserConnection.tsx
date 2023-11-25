@@ -18,6 +18,7 @@ import {
   getWalletRegistration,
   registerWallet,
 } from "@/lib/keeper";
+import { Loader2 } from "lucide-react";
 
 const UserConnection = () => {
   const user = useUserWalletStore((state) => state.userWallet);
@@ -37,6 +38,7 @@ const UserConnection = () => {
   };
 
   const registerNewWallet = async () => {
+    setLoading(true);
     try {
       const checkRegistration = await getWalletRegistration(user.address);
 
@@ -45,15 +47,19 @@ const UserConnection = () => {
         const ethereum = (window as any).ethereum;
         const provider = new ethers.BrowserProvider(ethereum);
         const signer = await provider.getSigner();
-        const signPayload = await generateSignedPayload(signer, { block: 1234 });
+        const signPayload = await generateSignedPayload(signer, {
+          block: 1234,
+        });
         const data = await registerWallet(signPayload);
         console.log("NEW ACCOUNT REGISTRATION: ", data);
       }
+      setLoading(false);
     } catch (error: Error | any) {
       const errDesc = `Error connecting to MetaMask: ${
         error?.message ?? error
       }`;
       console.log(errDesc);
+      setLoading(false);
     }
   };
 
@@ -68,7 +74,9 @@ const UserConnection = () => {
         const checkRegistration = await getWalletRegistration(signer.address);
 
         if (checkRegistration && !checkRegistration.walletDetails) {
-          const signPayload = await generateSignedPayload(signer, { block: 1234 });
+          const signPayload = await generateSignedPayload(signer, {
+            block: 1234,
+          });
           const register = await registerWallet(signPayload);
           console.log("ACCOUNT REGISTRATION: ", register);
         }
@@ -99,14 +107,12 @@ const UserConnection = () => {
         const errDesc = `Error connecting to MetaMask: ${
           error?.message ?? error
         }`;
-        alert(errDesc);
         setError(errDesc);
         setShowErrorDialog(true);
         setLoading(false);
       }
     } else {
       const errDesc = "MetaMask not installed";
-      alert(errDesc);
       setError(errDesc);
       setShowErrorDialog(true);
       setLoading(false);
@@ -118,19 +124,22 @@ const UserConnection = () => {
       {/* <Dialog open={showErroDialog} onOpenChange={setShowErrorDialog}>
      <DialogTrigger asChild> */}
       <Button variant={"outline"} onClick={() => connectToMetaMask()}>
-        <Image
-          src="/metamask.svg"
-          alt="MetaMask Logo"
-          className="dark:invert pe-1"
-          width={30}
-          height={30}
-          priority
-        />
         {!loading ? (
-          "Connect"
+          <>
+            <Image
+              src="/metamask.svg"
+              alt="MetaMask Logo"
+              className="dark:invert pe-1"
+              width={30}
+              height={30}
+              priority
+            />
+            Connect
+          </>
         ) : (
-          <span className="from-purple-500 via-pink-500 to-blue-500 bg-gradient-to-r bg-clip-text text-transparent font-light">
-            Registering...
+          <span className="from-purple-500 via-pink-500 to-blue-500 bg-gradient-to-r bg-clip-text text-transparent font-light flex items-center">
+            <Loader2 className="h-4 w-4 animate-spin me-1 text-muted-foreground" />
+            Registering
           </span>
         )}
       </Button>
@@ -157,16 +166,25 @@ const UserConnection = () => {
           aria-expanded={open}
           onClick={() => checkRegistration()}
         >
-          <Image
-            src="/metamask.svg"
-            alt="MetaMask Logo"
-            className="dark:invert pe-1"
-            width={30}
-            height={30}
-            priority
-          />
+          {!loading && (
+            <Image
+              src="/metamask.svg"
+              alt="MetaMask Logo"
+              className="dark:invert pe-1"
+              width={30}
+              height={30}
+              priority
+            />
+          )}
           <span className="from-purple-500 via-pink-500 to-blue-500 bg-gradient-to-r bg-clip-text text-transparent font-light">
-            {!loading ? middleEllipsis(user.address, 15) : "Registering..."}
+            {!loading ? (
+              middleEllipsis(user.address, 15)
+            ) : (
+              <span className="flex items-center">
+                <Loader2 className="h-4 w-4 animate-spin me-1 text-muted-foreground" />
+                Registering...
+              </span>
+            )}
           </span>
         </Button>
       </PopoverTrigger>

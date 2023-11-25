@@ -236,12 +236,12 @@ export const TicketsList = () => {
                             </DialogTitle>
                           </DialogHeader>
                           <DialogDescription className="text-center text-sm pb-10">
-                            <div className="flex justify-center items-center">
+                            <span className="flex justify-center items-center">
                               <Loader2 className="h-4 w-4 animate-spin me-1" />
                               <span className="animate-pulse">
                                 Event QR code is being decrypted...
                               </span>
-                            </div>
+                            </span>
                           </DialogDescription>
                         </DialogContent>
                       )}

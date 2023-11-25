@@ -9,9 +9,11 @@ import { useEffect, useState } from "react";
 import { EventListSkeleton } from "@/components/Skeletons";
 import { ethers } from "ethers";
 import { loadNftMetadata } from "@/lib/ternoa";
+import { useToast } from "@/components/ui/use-toast";
 
 export const EventList = () => {
   const user = useUserWalletStore((state) => state.userWallet);
+  const { toast } = useToast();
   const IPFS_URL = "https://ipfs-dev.trnnfr.com";
   const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(false);
   const [isPurchaseLoading, setIsPurchaseLoading] = useState<boolean>(false);
@@ -31,6 +33,12 @@ export const EventList = () => {
       const buyTicket = await buyEventTicket(signPayload);
       console.log(buyTicket);
       setIsPurchaseLoading(false);
+      if (buyTicket && buyTicket.ticket) {
+        return toast({
+          title: "Congratulation 🎉!",
+          description: `Your ticket is the ticket id: ${buyTicket.ticket.ticketNFTId}`,
+        });
+      }
     } catch (error: Error | any) {
       const errDesc = `Error buyingTicket: ${error?.message ?? error}`;
       console.log(errDesc);
@@ -77,7 +85,6 @@ export const EventList = () => {
       setIsLoadingEvents(false);
     };
   }, [user]);
-  console.log(events);
 
   return isLoadingEvents ? (
     <EventListSkeleton />
@@ -98,22 +105,22 @@ export const EventList = () => {
               key={e.eventId}
               className="border my-1 rounded-md transition-all hover:border-slate-300 w-full"
             >
-              <div className="flex flex-col items-center px-2 py-4">
-                <div className="mx-auto">
+              <div className="flex flex-col px-2 py-4">
+                <div className="mx-auto h-24">
                   <Image
                     src={e.fileUrl}
                     alt="Random event"
-                    className="rounded-md mx-auto"
+                    className="rounded-md"
                     width={120}
                     height={150}
                   />
                 </div>
-                <div className="flex flex-col pt-2 space-y-2 w-full">
-                  <h2 className="text-lg text-center font-bold">{e.title}</h2>
+                <div className="flex flex-col space-y-2 w-full">
+                  <h2 className="text-lg text-center font-bold h-16">{e.title}</h2>
                   <h2 className="text-sm text-muted-foreground font-bold">
                     Description:
                   </h2>
-                  <p className="text-sm text-muted-foreground overflow-y-auto max-h-[150px] min-h-[60px] border rounded-md p-2">
+                  <p className="text-sm text-muted-foreground overflow-y-auto h-[100px] border rounded-md p-2">
                     {e.description}
                   </p>
                   {e.buyAble && (
