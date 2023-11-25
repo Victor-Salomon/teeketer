@@ -23,3 +23,13 @@ export type EventsType = {
   success: boolean;
   allEvents: EventType[];
 };
+
+export type UserEventTicketType = {
+  eventId: string;
+  ticketId: number;
+};
+
+export type UsersTicketsType = {
+  success: boolean;
+  tickets: UserEventTicketType[]
+}

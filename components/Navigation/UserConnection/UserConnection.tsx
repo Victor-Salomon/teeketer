@@ -13,13 +13,11 @@ import { middleEllipsis } from "@/lib/utils";
 import { useUserWalletStore } from "@/stores/walletStore";
 import Link from "next/link";
 import Create from "@/components/events/Create";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   generateSignedPayload,
   getWalletRegistration,
   registerWallet,
 } from "@/lib/keeper";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const UserConnection = () => {
   const user = useUserWalletStore((state) => state.userWallet);
