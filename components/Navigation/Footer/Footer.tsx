@@ -3,7 +3,7 @@ import Discord from "@/assets/socials/Discord";
 import Twitter from "@/assets/socials/Twitter";
 import Telegram from "@/assets/socials/Telegram";
 
-const Footer = () => {
+export const Footer = () => {
   const year = new Date().getFullYear();
   const socialNetworks = [
     {
@@ -44,5 +44,3 @@ const Footer = () => {
     </div>
   );
 };
-
-export default Footer;

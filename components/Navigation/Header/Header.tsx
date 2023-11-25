@@ -2,7 +2,7 @@ import Link from "next/link";
 import TernoaIcon from "@/assets/providers/Ternoa";
 import UserConnection from "../UserConnection";
 
-const Header = () => {
+export const Header = () => {
   return (
     <nav className="container fixed top-0 left-0 right-0 backdrop-blur-md z-50">
       <div className="flex justify-between items-center py-4">
@@ -20,5 +20,3 @@ const Header = () => {
     </nav>
   );
 };
-
-export default Header;
