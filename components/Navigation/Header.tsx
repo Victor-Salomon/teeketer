@@ -1,6 +1,6 @@
 import Link from "next/link";
 import TernoaIcon from "@/assets/providers/Ternoa";
-import UserConnection from "../UserConnection";
+import UserConnection from "./UserConnection";
 
 export const Header = () => {
   return (
