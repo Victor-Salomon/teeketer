@@ -3,7 +3,7 @@ import { Skeleton } from "./ui/skeleton";
 export function EventListSkeleton() {
   return (
     <div className="overflow-hidden h-[600px] border rounded-lg p-4 flex justify-center">
-      <div className="grid grid-cols-5 gap-4 self-start">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 self-start">
         {Array.from({ length: 30 }, (_, i) => i + 1).map((id) => (
           <div
             key={id}

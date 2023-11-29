@@ -7,7 +7,7 @@ import {
   getUserTickets,
   retrieveTicketKey,
 } from "@/lib/keeper";
-import { UsersTicketsType } from "@/lib/types";
+import { PopulatedUsersTicket, UsersTickets } from "@/lib/types";
 import { useUserWalletStore } from "@/stores/walletStore";
 import { useEffect, useState } from "react";
 import { TicketListSkeleton } from "@/components/Skeletons";
@@ -39,8 +39,8 @@ export const TicketsList = () => {
   const [isLoadingTickets, setIsLoadingTickets] = useState<boolean>(false);
   const [decryptLoading, setDecryptLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | undefined>(undefined);
-  const [tickets, setTickets] = useState<UsersTicketsType>();
-  const [newTickets, setNewTickets] = useState<any>();
+  const [userTickets, setUserTickets] = useState<UsersTickets>();
+  const [populatedUserTickets, setPopulatedUserTickets] = useState<any>();
   const [secretFile, setSecretFile] = useState<string | TernoaFile | undefined>(
     undefined
   );
@@ -109,9 +109,9 @@ export const TicketsList = () => {
         return;
       }
       try {
-        const tickets: UsersTicketsType = await getUserTickets(user.address);
+        const tickets = await getUserTickets(user.address);
         console.log(tickets);
-        if (shouldUpdate) setTickets(tickets);
+        if (shouldUpdate) setUserTickets(tickets);
         console.log(tickets);
 
         setIsLoadingTickets(false);
@@ -139,9 +139,9 @@ export const TicketsList = () => {
       if (!isApiConnected()) {
         await initializeApi(API_WSS_ENDPOINT);
       }
-      if (tickets) {
-        const fullTickets = await Promise.all(
-          tickets?.tickets.map(async (t) => {
+      if (userTickets) {
+        const fullTickets: PopulatedUsersTicket[] = await Promise.all(
+          userTickets?.tickets.map(async (t) => {
             const ticketNFT = await getNftData(t.ticketId);
             const ipfsData: any =
               ticketNFT && (await loadNftMetadata(ticketNFT?.offchainData));
@@ -155,18 +155,18 @@ export const TicketsList = () => {
             };
           })
         );
-        setNewTickets(fullTickets);
+        setPopulatedUserTickets(fullTickets);
         console.log(fullTickets);
       }
     };
     populateTickets();
-  }, [tickets]);
+  }, [userTickets]);
 
   return isLoadingTickets ? (
     <TicketListSkeleton />
   ) : (
     <div className="overflow-y-auto h-[600px] border rounded-lg p-4 flex">
-      {!tickets || tickets.tickets.length === 0 ? (
+      {!userTickets || userTickets.tickets.length === 0 ? (
         <div className="flex flex-col items-center self-center space-y-4 text-muted-foreground mx-auto">
           <CalendarHeart />
           <p className="flex flex-col text-center">
@@ -178,12 +178,12 @@ export const TicketsList = () => {
         </div>
       ) : (
         <div className="w-full self-start">
-          {newTickets?.map((t: any) => (
+          {populatedUserTickets?.map((t: any) => (
             <div
               key={t.ticketId}
               className="border my-2 rounded-md transition-all hover:border-slate-300 w-full"
             >
-              <div className="flex items-center px-2 py-4">
+              <div className="flex flex-col sm:flex-row items-center px-2 py-4">
                 <div className="mx-auto min-h-auto px-4">
                   <Image
                     src={t.fileUrl}
@@ -201,10 +201,10 @@ export const TicketsList = () => {
                   <h2 className="text-md text-muted-foreground font-bold ">
                     Description:
                   </h2>
-                  <p className="text-sm text-muted-foreground overflow-y-auto max-h-[150px] min-h-[60px] border rounded-md p-2 w-4/6">
+                  <p className="text-sm text-muted-foreground overflow-y-auto max-h-[150px] min-h-[60px] border rounded-md p-2 md:w-4/6">
                     {t.description}
                   </p>
-                  <div>
+                  <div className="mx-auto sm:mx-0">
                     <Dialog>
                       <DialogTrigger
                         onClick={() => handleDecrypt(t.ticketId)}

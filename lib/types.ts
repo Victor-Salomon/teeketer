@@ -1,4 +1,4 @@
-export type signedPayloadType = {
+export type signedPayload = {
   sourceChainWallet: string;
   sourceChainType: string;
   sourceChainId: string;
@@ -6,7 +6,7 @@ export type signedPayloadType = {
   data: string;
 };
 
-export type EventType = {
+export type Event = {
   eventId: string;
   owner: string;
   sourceChainType: string;
@@ -17,20 +17,31 @@ export type EventType = {
   whitelistedCollections: string[];
   maximumTickets: number;
   buyAble: boolean;
-  fileUrl:string,
+  fileUrl: string;
 };
 
-export type EventsType = {
+export type Events = {
   success: boolean;
-  allEvents: EventType[];
+  allEvents: Event[];
 };
 
-export type UserEventTicketType = {
+export type UserEventTicket = {
   eventId: string;
   ticketId: number;
 };
 
-export type UsersTicketsType = {
+export type UsersTickets = {
   success: boolean;
-  tickets: UserEventTicketType[]
-}
+  tickets: UserEventTicket[];
+};
+
+export type PopulatedUsersTicket = {
+  description: string;
+  fileUrl: string;
+  title: string;
+} & UserEventTicket;
+
+export type RetrieveKey = {
+  success: boolean;
+  privateKey: string;
+};
