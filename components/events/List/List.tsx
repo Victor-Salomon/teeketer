@@ -106,17 +106,19 @@ export const EventList = () => {
               className="border my-1 rounded-md transition-all hover:border-slate-300 w-full"
             >
               <div className="flex flex-col px-2 py-4">
-                <div className="mx-auto h-24">
+                <div className="mx-auto h-28 overflow-hidden rounded-md">
                   <Image
                     src={e.fileUrl}
                     alt="Random event"
-                    className="rounded-md"
+                    className="w-auto h-full rounded-md object-cover transition-all hover:scale-105"
                     width={120}
                     height={150}
                   />
                 </div>
                 <div className="flex flex-col space-y-2 w-full">
-                  <h2 className="text-lg text-center font-bold h-16">{e.title}</h2>
+                  <h2 className="text-lg text-center font-bold h-16 pt-2">
+                    {e.title}
+                  </h2>
                   <h2 className="text-sm text-muted-foreground font-bold">
                     Description:
                   </h2>

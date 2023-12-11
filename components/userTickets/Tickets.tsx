@@ -223,7 +223,7 @@ export const TicketsList = () => {
                               Decryption failed.
                             </DialogTitle>
                           </DialogHeader>
-                          <DialogDescription className="pb-6 bg-gradient-to-r from-red-300 to-pink-600 bg-clip-text text-transparent text-base text-sm max-w-[370px]">
+                          <DialogDescription className="pb-6 bg-gradient-to-r from-red-300 to-pink-600 bg-clip-text text-transparent text-sm max-w-[370px]">
                             {error}
                           </DialogDescription>
                         </DialogContent>
