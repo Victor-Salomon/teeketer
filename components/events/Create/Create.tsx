@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { FileUploader } from "react-drag-drop-files";
 import { useForm } from "react-hook-form";
-import { ImageDown, X } from "lucide-react";
+import { ImageDown, Loader2, X } from "lucide-react";
 import { File, TernoaIPFS } from "ternoa-js";
 import { FormSchemaType, formSchema } from "./zod";
 import {
@@ -30,6 +31,7 @@ import { generateSignedPayload, registerEvent } from "@/lib/keeper";
 import { ethers } from "ethers";
 
 const Create = () => {
+  const router = useRouter();
   const [showCreateEventDialog, setShowCreateEventDialog] =
     useState<boolean>(false);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -108,7 +110,8 @@ const Create = () => {
       setIsEventUploading(false);
       return eventData;
     } catch (error) {
-      const errorDescription ="Event Creation Error: Something went wrong during the event creation.";
+      const errorDescription =
+        "Event Creation Error: Something went wrong during the event creation.";
       setError(errorDescription);
       setIsEventUploading(false);
       return;
@@ -147,12 +150,12 @@ const Create = () => {
               </DialogDescription>
             </>
           ) : ( */}
-            <>
-              <DialogTitle>Create an event</DialogTitle>
-              <DialogDescription>
-                Fill the following form to register your new event.
-              </DialogDescription>
-            </>
+          <>
+            <DialogTitle>Create an event</DialogTitle>
+            <DialogDescription>
+              Fill the following form to register your new event.
+            </DialogDescription>
+          </>
           {/* )} */}
         </DialogHeader>
         {/* {error ? (
@@ -162,40 +165,40 @@ const Create = () => {
             </div>
           </div> 
         ) : (*/}
-          <>
-            <div className="w-3/6 mx-auto bg-gradient-to-r from-indigo-400 to-cyan-400 p-0.5 rounded-lg">
-              <FileUploader
-                handleChange={handleTicketPreviewChange}
-                name="file"
-                type={fileTypes}
-                onTypeError={(err: Error) => console.log(err)}
-                onSizeError={(err: Error) => console.log(err)}
-              >
-                <div className="flex flex-col items-center border rounded-lg p-8 mx-auto bg-white cursor-pointer">
-                  <ImageDown />
-                  {ticketPreview ? (
-                    <p className="font-light text-sm py-2 text-center">
-                      Upload a new event ticket preview here.
-                    </p>
-                  ) : (
-                    <p className="font-light text-sm py-2 text-center">
-                      Upload or drop the event ticket preview here
-                    </p>
-                  )}
-                </div>
-              </FileUploader>
-            </div>
-            {ticketPreview && (
-              <p className="flex items-center justify-center from-purple-500 via-pink-500 to-blue-500 bg-gradient-to-r bg-clip-text text-transparent font-light text-sm">
-                <span className="text-primary me-1">File name: </span>
-                {ticketPreview.name}
-                <X
-                  onClick={() => setTicketPreview(undefined)}
-                  className="h-3 w-3 text-black cursor-pointer ms-0.5 mt-0.5"
-                />
-              </p>
-            )}
-          </>
+        <>
+          <div className="w-3/6 mx-auto bg-gradient-to-r from-indigo-400 to-cyan-400 p-0.5 rounded-lg">
+            <FileUploader
+              handleChange={handleTicketPreviewChange}
+              name="file"
+              type={fileTypes}
+              onTypeError={(err: Error) => console.log(err)}
+              onSizeError={(err: Error) => console.log(err)}
+            >
+              <div className="flex flex-col items-center border rounded-lg p-8 mx-auto bg-white cursor-pointer">
+                <ImageDown />
+                {ticketPreview ? (
+                  <p className="font-light text-sm py-2 text-center">
+                    Upload a new event ticket preview here.
+                  </p>
+                ) : (
+                  <p className="font-light text-sm py-2 text-center">
+                    Upload or drop the event ticket preview here
+                  </p>
+                )}
+              </div>
+            </FileUploader>
+          </div>
+          {ticketPreview && (
+            <p className="flex items-center justify-center from-purple-500 via-pink-500 to-blue-500 bg-gradient-to-r bg-clip-text text-transparent font-light text-sm">
+              <span className="text-primary me-1">File name: </span>
+              {ticketPreview.name}
+              <X
+                onClick={() => setTicketPreview(undefined)}
+                className="h-3 w-3 text-black cursor-pointer ms-0.5 mt-0.5"
+              />
+            </p>
+          )}
+        </>
         {/* )} */}
 
         <Form {...form}>
@@ -287,38 +290,50 @@ const Create = () => {
                       Event creation failed.
                     </DialogTitle>
                   </DialogHeader>
-                  <DialogDescription className="pb-6 bg-gradient-to-r from-red-300 to-pink-600 bg-clip-text text-transparent text-base text-sm">
+                  <DialogDescription className="pb-6 bg-gradient-to-r from-red-300 to-pink-600 bg-clip-text text-transparent text-sm">
                     {error}
                   </DialogDescription>
                 </DialogContent>
               )}
               {isEventUploading && (
-                <DialogContent className="sm:max-w-[425px] px-2 sm:px-6 rounded-md bg-gradient-to-tr from-violet-500 to-orange-300 py-4 w-2/3 mt-2 text-center mx-auto text-white">
+                <DialogContent className="sm:max-w-[425px] px-2 sm:px-6 rounded-md py-4 w-2/3 mt-2">
                   <DialogHeader>
-                    <DialogTitle className="p-4 text-white text-center">
-                      Uploading event.
+                    <DialogTitle className="p-4 text-center">
+                      UPLOADING EVENT
                     </DialogTitle>
                   </DialogHeader>
-                  <DialogDescription className="text-white text-center text-sm pb-10">
-                    Your event is being uploaded...
+                  <DialogDescription className="flex justify-center items-center text-sm pb-10">
+                    <Loader2 className="h-4 w-4 animate-spin me-1" />
+                    <span className="animate-pulse">
+                      Your event is being uploaded...
+                    </span>
                   </DialogDescription>
                 </DialogContent>
               )}
               {eventData && (
-                <DialogContent className="sm:max-w-[425px] px-2 sm:px-6 rounded-md bg-gradient-to-r from-teal-200 to-teal-500 text-white py-4 w-2/3 mt-2 text-center mx-auto text-white">
+                <DialogContent className="sm:max-w-[425px] px-2 sm:px-6 rounded-md py-4 w-2/3 mt-2 text-center mx-auto">
                   <DialogHeader>
                     <DialogTitle className="p-4 bg-clip-text bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-amber-900 to-yellow-300 text-transparent text-center">
-                      EVENT SUCCESSFULLY CREATED 🎉
+                      EVENT SUCCESSFULLY CREATED
                     </DialogTitle>
                   </DialogHeader>
-                  <DialogDescription className="pb-6 text-white text-sm space-y-4 mx-3">
-                    <span className="">
-                      <span className="font-bold me-0.5">Congratulation,</span>
-                      <span className="font-bold bg-clip-text bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-amber-900 to-yellow-300 text-transparent mx-1">
+                  <DialogDescription className="flex flex-col pb-6 text-sm space-y-4 mx-3">
+                    <span>
+                      <span>Congratulation,</span>
+                      <span className="font-bold mx-1">
                         {eventData.eventRegistration.title} event
                       </span>
                       created!
                     </span>
+                    <Button
+                      variant={"outline"}
+                      className="mx-auto"
+                      onClick={() => {
+                        setShowCreateEventDialog(false), router.push("/");
+                      }}
+                    >
+                      Close
+                    </Button>
                   </DialogDescription>
                 </DialogContent>
               )}

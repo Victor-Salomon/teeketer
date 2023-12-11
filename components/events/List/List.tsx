@@ -3,7 +3,7 @@ import Image from "next/image";
 import { CalendarHeart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buyEventTicket, generateSignedPayload, getEvents } from "@/lib/keeper";
-import { EventType, EventsType } from "@/lib/types";
+import { Event, Events } from "@/lib/types";
 import { useUserWalletStore } from "@/stores/walletStore";
 import { useEffect, useState } from "react";
 import { EventListSkeleton } from "@/components/Skeletons";
@@ -18,7 +18,7 @@ export const EventList = () => {
   const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(false);
   const [isPurchaseLoading, setIsPurchaseLoading] = useState<boolean>(false);
   // const [error, setError] = useState<string | undefined>(undefined);
-  const [events, setEvents] = useState<EventsType>();
+  const [events, setEvents] = useState<Events>();
 
   const handleBuy = async (eventId: string) => {
     setIsPurchaseLoading(true);
@@ -52,7 +52,7 @@ export const EventList = () => {
 
     const loadEvents = async () => {
       try {
-        const events: EventsType = user.isConnected
+        const events: Events = user.isConnected
           ? await getEvents(user.address)
           : await getEvents();
         if (events) {
@@ -99,24 +99,26 @@ export const EventList = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-4 gap-4 self-start w-full">
-          {events?.allEvents.map((e: EventType) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 self-start w-full">
+          {events?.allEvents.map((e: Event) => (
             <div
               key={e.eventId}
               className="border my-1 rounded-md transition-all hover:border-slate-300 w-full"
             >
               <div className="flex flex-col px-2 py-4">
-                <div className="mx-auto h-24">
+                <div className="mx-auto h-28 overflow-hidden rounded-md">
                   <Image
                     src={e.fileUrl}
                     alt="Random event"
-                    className="rounded-md"
+                    className="w-auto h-full rounded-md object-cover transition-all hover:scale-105"
                     width={120}
                     height={150}
                   />
                 </div>
                 <div className="flex flex-col space-y-2 w-full">
-                  <h2 className="text-lg text-center font-bold h-16">{e.title}</h2>
+                  <h2 className="text-lg text-center font-bold h-16 pt-2">
+                    {e.title}
+                  </h2>
                   <h2 className="text-sm text-muted-foreground font-bold">
                     Description:
                   </h2>

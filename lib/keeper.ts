@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { EventsType, signedPayloadType } from "./types";
+import { Events, RetrieveKey, UsersTickets, signedPayload } from "./types";
 
 export const getWalletRegistration = async (userAddress: string) => {
   const apiUrl =
@@ -28,7 +28,7 @@ export const getWalletRegistration = async (userAddress: string) => {
 export const generateSignedPayload = async (
   signer: ethers.JsonRpcSigner,
   payload: any
-): Promise<signedPayloadType> => {
+): Promise<signedPayload> => {
   const data = JSON.stringify(payload);
   const sourceChainId = "0";
   const sourceChainType = "ERC";
@@ -44,7 +44,7 @@ export const generateSignedPayload = async (
   };
 };
 
-export const registerWallet = async (signedPayload: signedPayloadType) => {
+export const registerWallet = async (signedPayload: signedPayload) => {
   const apiUrl =
     "https://alphanet-admin-c1.ternoa.dev:3001/api/keeper/registerWallet";
 
@@ -63,7 +63,7 @@ export const registerWallet = async (signedPayload: signedPayloadType) => {
     });
 };
 
-export const registerEvent = async (signedPayload: signedPayloadType) => {
+export const registerEvent = async (signedPayload: signedPayload) => {
   const apiUrl =
     "https://alphanet-admin-c1.ternoa.dev:3001/api/keeper/registerEvent";
 
@@ -82,7 +82,7 @@ export const registerEvent = async (signedPayload: signedPayloadType) => {
     });
 };
 
-export const getEvents = async (address?: string): Promise<EventsType> => {
+export const getEvents = async (address?: string): Promise<Events> => {
   const apiUrl =
     "https://alphanet-admin-c1.ternoa.dev:3001/api/keeper/getAllEvents";
 
@@ -101,7 +101,7 @@ export const getEvents = async (address?: string): Promise<EventsType> => {
     });
 };
 
-export const buyEventTicket = async (signedPayload: signedPayloadType) => {
+export const buyEventTicket = async (signedPayload: signedPayload) => {
   const apiUrl =
     "https://alphanet-admin-c1.ternoa.dev:3001/api/keeper/buyTicket";
 
@@ -120,7 +120,7 @@ export const buyEventTicket = async (signedPayload: signedPayloadType) => {
     });
 };
 
-export const getUserTickets = async (address?: string): Promise<any> => {
+export const getUserTickets = async (address?: string): Promise<UsersTickets> => {
   const apiUrl =
     "https://alphanet-admin-c1.ternoa.dev:3001/api/keeper/getUserTickets";
 
@@ -139,7 +139,7 @@ export const getUserTickets = async (address?: string): Promise<any> => {
     });
 };
 
-export const retrieveTicketKey = async (signedPayload: signedPayloadType) => {
+export const retrieveTicketKey = async (signedPayload: signedPayload):Promise<RetrieveKey> => {
   const apiUrl =
     "https://alphanet-admin-c1.ternoa.dev:3001/api/keeper/retriveTicketKey";
 
