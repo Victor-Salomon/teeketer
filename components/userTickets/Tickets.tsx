@@ -246,7 +246,7 @@ export const TicketsList = () => {
                         </DialogContent>
                       )}
                       {secretFile && (
-                        <DialogContent className="sm:max-w-[425px] px-2 sm:px-6 rounded-md py-4 w-2/3 mt-2 text-center mx-auto text-white">
+                        <DialogContent className="sm:max-w-[425px] px-2 sm:px-6 rounded-md py-4 w-2/3 mt-2 text-center mx-auto">
                           <DialogHeader>
                             <DialogTitle className="p-4 bg-clip-text bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-amber-900 to-yellow-300 text-transparent text-center">
                               {t.title}
