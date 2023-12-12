@@ -16,12 +16,15 @@ export const EventList = () => {
   const { toast } = useToast();
   const IPFS_URL = "https://ipfs-dev.trnnfr.com";
   const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(false);
-  const [isPurchaseLoading, setIsPurchaseLoading] = useState<boolean>(false);
+  const [isPurchaseLoading, setIsPurchaseLoading] = useState<{
+    status: boolean;
+    eventId?: string | undefined;
+  }>({ status: false, eventId: undefined });
   // const [error, setError] = useState<string | undefined>(undefined);
   const [events, setEvents] = useState<Events>();
 
   const handleBuy = async (eventId: string) => {
-    setIsPurchaseLoading(true);
+    setIsPurchaseLoading({ status: true, eventId });
     try {
       const ethereum = (window as any).ethereum;
       const provider = new ethers.BrowserProvider(ethereum);
@@ -32,7 +35,7 @@ export const EventList = () => {
       });
       const buyTicket = await buyEventTicket(signPayload);
       console.log(buyTicket);
-      setIsPurchaseLoading(false);
+      setIsPurchaseLoading({ status: false, eventId: undefined });
       if (buyTicket && buyTicket.ticket) {
         return toast({
           title: "Congratulation 🎉!",
@@ -42,7 +45,7 @@ export const EventList = () => {
     } catch (error: Error | any) {
       const errDesc = `Error buyingTicket: ${error?.message ?? error}`;
       console.log(errDesc);
-      setIsPurchaseLoading(false);
+      setIsPurchaseLoading({ status: false, eventId: undefined });
     }
   };
 
@@ -86,6 +89,8 @@ export const EventList = () => {
     };
   }, [user]);
 
+  console.log(events);
+
   return isLoadingEvents ? (
     <EventListSkeleton />
   ) : (
@@ -100,9 +105,9 @@ export const EventList = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 self-start w-full">
-          {events?.allEvents.map((e: Event) => (
+          {events?.allEvents.map((e: Event, i) => (
             <div
-              key={e.eventId}
+              key={`${e.eventId}_${i}`}
               className="border my-1 rounded-md transition-all hover:border-slate-300 w-full"
             >
               <div className="flex flex-col px-2 py-4">
@@ -130,9 +135,10 @@ export const EventList = () => {
                       className="mx-auto"
                       variant={"outline"}
                       onClick={() => handleBuy(e.eventId)}
-                      disabled={isPurchaseLoading}
+                      disabled={isPurchaseLoading.status}
                     >
-                      {isPurchaseLoading ? (
+                      {isPurchaseLoading.status &&
+                      isPurchaseLoading.eventId === e.eventId ? (
                         <div className="flex items-center">
                           <Loader2 className="h-4 w-4 animate-spin me-1" />
                           <span className="animate-pulse">
